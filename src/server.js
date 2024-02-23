@@ -1,12 +1,9 @@
-import "./db";
-import "./models/Video";
 import express from "express";
 import morgan from "morgan";
-import globalRouter from "./routers/globalRouter";
+import session from "express-session";
+import rootRouter from "./routers/rootRouter";
 import userRouter from "./routers/userRouter";
 import videoRouter from "./routers/videoRouter";
-
-const PORT = 4000;
 
 const app = express();
 const logger = morgan("dev");
@@ -15,12 +12,22 @@ app.use(logger);
 app.set("view engine", "pug");
 app.set("views", process.cwd() + "/src/views");
 app.use(express.urlencoded({ extended: true }));
-app.use("/", globalRouter);
+
+app.use(
+  session({
+    secret: "Hello!",
+    resave: true,
+    saveUninitialized: true,
+  })
+);
+
+app.get("/add-one", (req, res, next) => {
+  req.session.potato += 1;
+  return res.send(`${req.session.id}\n${req.session.potato}`);
+});
+
+app.use("/", rootRouter);
 app.use("/videos", videoRouter);
 app.use("/users", userRouter);
 
-const handleListening = () => {
-  console.log(`✅Server listening on port http://localhost:${PORT}`);
-};
-
-app.listen(PORT, handleListening);
+export default app;
